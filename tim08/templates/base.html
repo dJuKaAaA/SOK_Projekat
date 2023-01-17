@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {% load static %}
+    <script type="text/javascript" src="{% static 'd3.v3.js' %}"></script>
+    <script type="text/javascript" src="{% static 'base.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'base.css' %}" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+
+    <title>{{title}}</title>
+
+    {% block head_content %} {% endblock %}
+  </head>
+  <body>
+    <div id="mySidenav" class="side-nav">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"
+        >&times;</a
+      >
+      <a href="#">Country's (JSON)</a>
+      <a href="#">File system</a>
+    </div>
+    <div class="nav-header">
+      <span style="font-size: 30px; cursor: pointer" onclick="openNav()"
+        >&#9776;</span
+      >
+      <div class="div-input-filter">
+        <form>
+          <input
+            type="text"
+            id="file-path-input"
+            placeholder="FILE PATH"
+            name="input"
+          />
+          <button type="submit">Send</button>
+        </form>
+        <form>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="SEARCH"
+            name="input"
+          />
+          <button type="submit">Send</button>
+        </form>
+        <form>
+          <input
+            type="text"
+            id="filter-input"
+            placeholder="FILTER"
+            name="input"
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="tree-view"></div>
+      <div id="graph-view"></div>
+    </div>
+    <div class="footer-nav">
+      <div class="footer-buttons">
+        <button class="blue-button">Simple view</button>
+        <button class="blue-button">Complex view</button>
+      </div>
+    </div>
+  </body>
+</html>
