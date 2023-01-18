@@ -1,0 +1,116 @@
+body {
+  font-family: "Lato", sans-serif;
+}
+
+.side-nav {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 60px;
+}
+
+.side-nav a {
+  padding: 8px 8px 8px 32px;
+  margin-right: 50px;
+  text-decoration: none;
+  font-size: 20px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+
+.side-nav a:hover {
+  color: #f1f1f1;
+}
+
+.side-nav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 0px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+@media screen and (max-height: 450px) {
+  .side-nav {
+    padding-top: 15px;
+  }
+  .side-nav a {
+    font-size: 18px;
+  }
+}
+
+.blue-button {
+  background-color: rgb(55, 95, 206);
+  color: white;
+  padding: 10px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 4px 2px;
+  border: none;
+  cursor: pointer;
+}
+
+.div-input-filter {
+  display: flex;
+  padding: 10px;
+  top: 0;
+}
+
+form > input {
+  padding: 0.5em;
+  border: 1px solid #ccc;
+}
+
+form > button {
+  margin-right: 20px;
+  background-color: blue;
+  color: white;
+  padding: 0.5em 1em;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-header {
+  display: flex;
+  justify-content: space-between;
+}
+.content {
+  display: flex;
+  margin-top: 1%;
+  min-height: 80vh;
+}
+#graph-view {
+  border: #111;
+  border-style: solid;
+  background-color: rgb(241, 32, 32);
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+}
+
+#tree-view {
+  width: 20%;
+  background-color: blue;
+  border: #111;
+  border-style: solid;
+}
+.footer-nav {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.footer-buttons {
+  margin-top: 1%;
+  display: flex;
+}
