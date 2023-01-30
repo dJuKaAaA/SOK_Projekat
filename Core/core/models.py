@@ -41,4 +41,23 @@ class Graph:
       ret += "----------------------------------\n"
     return ret
 
-  
+  def search(self, term):
+    g = Graph({})
+
+    for node_id in self.data:
+      node = self.data[node_id]
+      if self.search_check(term, node):
+        g.data[node_id] = node
+
+    for node_id in g.data:
+      node = g.data[node_id]
+      node.edges = list(filter(lambda x: x.second_node in g.data, node.edges))
+
+    return g
+
+  def search_check(self, term, node):
+    for key in node.data:
+      if term in str(node.data[key]):
+        return True
+    return False
+
