@@ -29,9 +29,9 @@
 <svg width="100%" height="100%"></svg>
 
 <script>
-  let code = {{code}};
-  code = code.replaceAll('&quot;', '"');
-  console.log(code)
+  let code = `{{code}}`;
+  code = code.replaceAll("&quot;", '"');
+  console.log(code);
   eval(code);
 </script>
 
