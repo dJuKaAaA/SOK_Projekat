@@ -5,12 +5,15 @@ import pkg_resources
 class CoreConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'core'
-    loaded_plugins = []
+    graph = None
+    SIMPLE = "simple"
+    COMPLEX = "complex"
+    view = None
+    loaded_plugins = {}
 
     def ready(self):
-        # self.loaded_plugins += load_plugins()
-        # TODO: load plugins here :)
-        pass
+        fsp_plugins = load_plugins("fsp_plugin")
+        self.loaded_plugins["fsp_plugin"] = fsp_plugins[0] if len(fsp_plugins) > 0 else None
 
 
 def load_plugins(group):
