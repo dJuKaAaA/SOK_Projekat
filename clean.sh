@@ -18,3 +18,24 @@ remove_eggs Core
 cd tim08
 rm *.sqlite3
 cd ..
+
+cd Core
+rm -rf build
+rm -rf *.egg-info
+rm -rf dist
+cd ..
+cd file_system_parser
+rm -rf build
+rm -rf *.egg-info
+rm -rf dist
+cd ..
+cd complex_view_plugin
+rm -rf build
+rm -rf *.egg-info
+rm -rf dist
+cd ..
+cd simple_view_plugin
+rm -rf build
+rm -rf *.egg-info
+rm -rf dist
+cd ..
