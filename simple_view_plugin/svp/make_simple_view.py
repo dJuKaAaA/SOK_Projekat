@@ -181,6 +181,10 @@ class SimpleVisualizator(VisualizeService):
             .attr("y2", function (d) {
               return d.target.y;
             });
+
+            syncMiniMapMovement();
         }
+
+        initMiniMap(links, force);
   """
       return string

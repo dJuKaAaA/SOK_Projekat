@@ -12,6 +12,19 @@
     />
     <title>{{title}}</title>
 
+    <style>
+      #bird-view {
+        position: absolute;
+        width: 20vw;
+        height: 25vh;
+        bottom: 18vh;
+        right: 8vw;
+        background-color: white;
+        border: #111;
+        border-style: solid;
+      }
+    </style>
+
     {% block head_content %} {% endblock %}
   </head>
   <body>
@@ -64,6 +77,7 @@
     </div>
 
     <div class="content">
+      <div id="bird-view"></div>
       <div id="tree-view"></div>
       <div id="graph-view">{% block content %} {% endblock %}</div>
     </div>
