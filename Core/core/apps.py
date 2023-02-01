@@ -5,6 +5,7 @@ import pkg_resources
 class CoreConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'core'
+    og_graph = None
     graph = None
     SIMPLE = "simple"
     COMPLEX = "complex"

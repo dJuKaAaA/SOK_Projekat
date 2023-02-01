@@ -1,0 +1,454 @@
+<script src="https://d3js.org/d3.v5.min.js"></script>
+
+<style>
+    /* styles for the links */
+    .link-tree {
+        fill: none;
+        stroke: #000000;
+        stroke-width: 2px;
+    }
+
+    /* styles for the nodes */
+    .node-tree {}
+
+    /* styles for the node circles */
+    .node-tree circle {
+        fill: rgb(19, 98, 196);
+        stroke: rgb(0, 0, 0);
+        stroke-width: 2px;
+        r: 15px;
+    }
+
+    .node-tree circle:hover {
+        cursor: pointer;
+        fill: rgb(150, 20, 20);
+        stroke: rgb(150, 20, 20);
+        r: 20px;
+    }
+
+    /* styles for the node text */
+    .node-tree text {
+        fill: #000;
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    /* styles for the child nodes */
+    .node-tree text.child {
+        fill: #999;
+        font-size: 10px;
+        font-weight: normal;
+    }
+
+    .popup-tree {
+        opacity: 0;
+        position: absolute;
+        width: 200px;
+        max-height: 150px;
+        background-color: white;
+        border: 2px solid black;
+        padding: 15px;
+        top: 10vh;
+        left: 2vw;
+        border-radius: 10px;
+        text-align: center;
+    }
+</style>
+
+<script>
+
+    let stringifiedData = '{{data}}'.replaceAll('&quot;', '"').trim();
+    let graphData;
+    if (stringifiedData == '') {
+        graphData = {}
+    } else {
+        graphData = JSON.parse(stringifiedData);
+    }
+    console.log(graphData);
+
+    let dataForDisplay = {};
+    let nodeIdGenerator = {}  // contains the number of times a certain node appears
+
+    for (let d in graphData) {
+        nodeIdGenerator[d] = {};
+        for (let node in graphData[d]) {
+            nodeIdGenerator[d][node] = 0;
+        }
+    }
+
+    for (let d in graphData) {
+        const key = `${d}__${nodeIdGenerator[d][d]++}`;
+        dataForDisplay[d] = {}
+        dataForDisplay[d][key] = { "name": key, "children": [] }
+        for (let child of graphData[d][d]["children"]) {
+            const childKey = `${child["name"]}__${nodeIdGenerator[d][child["name"]]++}`;
+            dataForDisplay[d][key]["children"].push({ "name": childKey });
+            dataForDisplay[d][childKey] = { "name": childKey, "children": [] };
+        }
+    }
+
+    const setData = (node, displayNode, rootId) => {
+        if (displayNode.children.length > 0) {
+            node.children = [];
+            for (let obj of displayNode.children) {
+                let child = { name: obj["name"] }
+                node.children.push(child)
+                setData(child, dataForDisplay[rootId][child.name], rootId);
+            }
+        }
+    }
+
+    let data = {};
+    let treeCount = 0;  // number of trees that are going to be displayed (or the number of canvases if you will)
+
+    // the dimensions of svg canvases
+    const svgDimensions = {}
+
+    // used for balancing the position of nodes after centering the node that was clicked and expanded/closed
+    const mouseMovementBalancer = {}
+
+    // tells us which graph (identified by root id) is showing on which canvas (svg id)
+    const idOfCanvasForGraph = {} 
+
+    for (let d in graphData) {
+        tree = { "name": dataForDisplay[d][d + "__0"]["name"] }
+        setData(tree, dataForDisplay[d][d + "__0"], d);
+        data[d] = tree;
+        svgDimensions[d] = { width: 0, height: 0 };
+        mouseMovementBalancer[d] = { translateX: 0, translateY: 0 };
+        ++treeCount;
+    }
+
+    let margin = { top: 20, right: 90, bottom: 30, left: 90 };
+
+    const calculateDepth = (currentNode, depth = 0) => {
+        ++depth;  // depth we can increment and return
+        let currentDepth = depth;  // depth that doesn't change during this method call because we want to pass the same depth to every sibling node
+        if (currentNode.children) {
+            for (let n of currentNode.children) {  // we iterate through the children if they exist
+                if (n.children != undefined) {
+                    let gottenDepth = calculateDepth(n, currentDepth);
+                    if (gottenDepth > depth) {  // we choose the larger depth
+                        depth = gottenDepth;
+                    }
+                }
+            }
+        }
+        return depth;
+    }
+
+    // calculates the size of the level that contains the most nodes
+    function mostNodes(root) {
+        if (!root) {
+            return { level: 0, count: 0 };
+        }
+        var queue = [root];
+        var maxLevel = 1;
+        var currentLevel = 0;
+        var maxCount = 1;
+        var currentCount = 1;
+        while (queue.length > 0) {
+            var size = queue.length;
+            currentCount = size;
+            currentLevel++;
+            while (size > 0) {
+                var node = queue.shift();
+                if (node.children) {
+                    for (var i = 0; i < node.children.length; i++) {
+                        queue.push(node.children[i]);
+                    }
+                }
+                size--;
+            }
+            if (currentCount > maxCount) {
+                maxCount = currentCount;
+                maxLevel = currentLevel - 1;
+            }
+        }
+        return { level: maxLevel, count: maxCount };
+    }
+
+    
+
+    const HOVER_TEXT_PLACEHOLDER = "Hover the mouse over the node to see the details";
+
+    // here we get the screen width and height of the div that has the id of #tree-view
+    const treeView = d3.select('#tree-view');
+    const treeViewNode = treeView.node();
+    const treeViewWidth = treeViewNode.getBoundingClientRect().width;
+    const treeViewHeight = treeViewNode.getBoundingClientRect().height;
+
+    let popup = d3.select("#tree-view").append("div")
+        .attr("class", "popup-tree")
+        .text(HOVER_TEXT_PLACEHOLDER);
+
+    const focusOnNode = (rootId, nodeId) => {
+        const parseTranslateString = (translateString) => {
+            const stringifiedCoords = translateString.substring(translateString.indexOf("(") + 1, translateString.indexOf(")")).split(",");
+            return { x: +stringifiedCoords[0], y: +stringifiedCoords[1] };
+        }
+
+        const nodeTransform = d3.select("#" + nodeId).attr("transform");
+        const currentTransformCoords = parseTranslateString(nodeTransform)
+        const toTranslateX = treeViewWidth / 2 - currentTransformCoords.x;
+        const toTranslateY = treeViewHeight / 2 - currentTransformCoords.y;
+
+        let transform = Object.create(d3.zoomTransform.prototype);
+        transform.x = toTranslateX;
+        transform.y = toTranslateY;
+        transform.k = 1;
+
+        const translateRelative = (d) => {
+            let transformNode = Object.create(transform);
+            transformNode.x += d.y;
+            transformNode.y += d.x;
+            return transformNode;
+        }
+
+        const transformLink = Object.create(d3.zoomTransform.prototype);
+        transformLink.x = toTranslateX;
+        transformLink.y = toTranslateY;
+        transformLink.k = 1;
+
+        mouseMovementBalancer[rootId].translateX = toTranslateX;
+        mouseMovementBalancer[rootId].translateY = toTranslateY;
+
+        d3.selectAll(".node-tree").attr("transform", function (d) { return translateRelative(d); })
+        d3.selectAll(".link-tree").attr("transform", transformLink);
+    }
+
+    const setDisplay = (data, svgId, rootId, init = false) => {  // svgId is a number we pass so that we remove just the one canvas that is being updated and also append it to the place it was before removing it
+        d3.select("#tree-view").select(`#svg${svgId}`).remove();  // we remove the previous canvas for a fresh start
+
+        let widthBalancer = 0.5 + calculateDepth(data) * 0.5;  // this is used to increase the size of the canvas a linearly as possible using the current tree depth
+        let mostNodesRetVal = mostNodes(data);
+        let heightBalancer = treeViewHeight * mostNodesRetVal.level * mostNodesRetVal.count * 0.1;
+        let width = treeViewWidth * widthBalancer - margin.left - margin.right;
+        let height = treeViewHeight + heightBalancer - margin.top - margin.bottom;
+
+        // we set the current dimensions of the svg canvas and save them to svgDimensions object 
+        svgDimensions[rootId].width = width + margin.right + margin.left
+        svgDimensions[rootId].height = height + margin.top + margin.bottom;
+
+        // we place the canvas where it was
+        let svg;
+        if (svgId <= treeCount - 2 && !init) {  // we use - 2 and + 2 to account for the popup that is also a child of the #tree-view div
+            svg = treeView.insert('svg', `:nth-child(${svgId + 2})`).attr("id", `svg${svgId}`)
+                .attr("width", width + margin.right + margin.left)
+                .attr("height", height + margin.top + margin.bottom)
+        } else {
+            svg = treeView.append("svg").attr("id", `svg${svgId}`)
+                .attr("width", width + margin.right + margin.left)
+                .attr("height", height + margin.top + margin.bottom)
+        }
+
+        svg.attr("width", svgDimensions[rootId].width).attr("height", svgDimensions[rootId].height)
+
+        // creating a tree structure using the d3 library which will be used to show the tree view of the graph
+        let tree = d3.tree().size([height, width]);
+
+        let root = d3.hierarchy(data);
+        tree(root);
+
+        function zoomed() {
+            // get the current transform
+            let transform = d3.event.transform;
+            const transformLink = Object.create(transform);
+            transformLink.x += mouseMovementBalancer[rootId].translateX;
+            transformLink.y += mouseMovementBalancer[rootId].translateY;
+
+            const translateRelative = (d) => {
+                let transformNode = Object.create(transform);
+                transformNode.x = d.y + transform.x + mouseMovementBalancer[rootId].translateX;
+                transformNode.y = d.x + transform.y + mouseMovementBalancer[rootId].translateY;
+                return transformNode;
+            }
+
+            // update the x and y position of the elements to be zoomed
+            d3.selectAll(".node-tree").attr("transform", function(d) { return translateRelative(d); })
+            d3.selectAll(".link-tree").attr("transform", transformLink);
+        }
+        let zoom = d3.zoom()
+            .scaleExtent([1, 1]) // set the min and max zoom level
+            .on("zoom", zoomed);
+
+        svg.call(zoom);
+
+        // adding all the nodes using the tree structure we created above
+        let node = svg.selectAll(".node-tree")
+            .data(root.descendants())
+            .enter().append("g")
+            .attr("id", function(d) { return d.data.name; })
+            .attr("class", "node-tree")
+            .attr("id", function(d) { return d.data.name; })
+            .attr("transform", function (d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+        // circle that will represent the node
+        node.append("circle")
+            .on("click", function (d) {
+                popup.style("opacity", 0);
+                if (d.data.name == rootId) {
+                    return;
+                }
+
+                const actualNodeId = d.data.name.substring(0, d.data.name.indexOf("__"));
+
+                if (graphData[rootId][actualNodeId].children.length == 0) {
+                    return;
+                }
+
+                if (dataForDisplay[rootId][d.data.name].children.length > 0) {
+                    const removeChildrenOfNode = (rootId, nodeId) => {
+                        for (let child of dataForDisplay[rootId][nodeId].children) {
+                            removeChildrenOfNode(rootId, child.name);
+                            delete dataForDisplay[rootId][child.name];
+                            --nodeIdGenerator[rootId][child.name.substring(0, child.name.indexOf("__"))];
+                        }
+                        dataForDisplay[rootId][nodeId].children = []
+                    }
+                    // for (let child of dataForDisplay[rootId][d.data.name].children) {
+                    //     delete dataForDisplay[rootId][child.name];
+                    //     --nodeIdGenerator[rootId][child.name.substring(0, child.name.indexOf("__"))];
+                    // }
+                    removeChildrenOfNode(rootId, d.data.name);
+
+                } else {
+                    let node = graphData[rootId][actualNodeId];
+                    for (let child of node.children) {
+                        const childKey = `${child["name"]}__${nodeIdGenerator[rootId][child["name"]]++}`;
+                        dataForDisplay[rootId][d.data.name].children.push({ "name": childKey });
+                        dataForDisplay[rootId][childKey] = {
+                            name: childKey,
+                            children: []
+                        }
+                    }
+                }
+
+                setData(data, dataForDisplay[rootId][rootId + "__0"], rootId);
+                setDisplay(data, svgId, rootId);
+
+                focusOnNode(rootId, d.data.name);
+                console.log(dataForDisplay[rootId]);
+                
+            })
+            .on("mouseout", function () {
+                popup
+                    .transition()
+                    .duration(200)
+                    .style("opacity", 0)
+            })
+            .on("mouseover", function (d) {
+                let detailedInfo = "";
+
+                // using the temporary root node sync solver that was described bellow
+                try {
+                    const actualNodeId = d.data.name.substring(0, d.data.name.indexOf("__"));
+                    detailedInfo = graphData[rootId][actualNodeId]["info"];  // here we set the detailed information that will be shown in the popup
+                } catch {
+                    detailedInfo = graphData[rootId][rootId]["info"];
+                }
+
+                const y = d3.event.pageY + 30;
+                const x = d3.event.pageX;
+                popup
+                    .transition()
+                    .duration(200)
+                    .style("opacity", 1)
+                    .text(detailedInfo);
+                popup
+                    .style("top", `${y}px`)
+                    .style("left", `${x}px`)
+            })
+
+        // text of the node
+        node.append("text")
+            .attr("dy", 30)
+            .style("text-anchor", "middle")
+            .text(function (d) {
+                let actualNodeId;
+
+                // temporary root node sync with main view solution
+                try {
+                    actualNodeId = d.data.name.substring(0, d.data.name.indexOf("__"));
+                } catch {
+                    actualNodeId = rootId;
+                }
+
+                return actualNodeId;
+            });
+
+        // edges connecting the tree nodes
+        let link = svg.selectAll(".link-tree")
+            .data(root.links())
+            .enter()
+            .append("path")
+            .attr("class", "link-tree")
+            .attr("d", d3.linkHorizontal()
+                .x(function (d) { return d.y; })
+                .y(function (d) { return d.x; }));
+
+    }
+
+    const nodeOpeningRetVal = {
+        PARENT_NOT_FOUND: "parentNotFound",
+        OPENED_NODE: "openedNode",
+    }
+
+    // when clicking on a node in main view it opens the node in tree view but the display information about the node is lost
+    // this method fixes that by returning the display information, however it is not an ideal solution
+    function handleOpeningOfNodeFromMainView(rootId, nodeId) {
+        const nodeDisplayId = `${nodeId}__0`;
+        if (nodeDisplayId in dataForDisplay[rootId]) {
+            if (dataForDisplay[rootId][nodeDisplayId].children.length == 0) {
+                
+                let node = graphData[rootId][nodeId];
+                for (let child of node.children) {
+                    const childKey = `${child["name"]}__${nodeIdGenerator[rootId][child["name"]]++}`;
+                    dataForDisplay[rootId][nodeDisplayId].children.push({ "name": childKey });
+                    dataForDisplay[rootId][childKey] = {
+                        name: childKey,
+                        children: []
+                    }
+                }
+
+                setData(data, dataForDisplay[rootId][rootId + "__0"], rootId);
+                setDisplay(data, idOfCanvasForGraph[rootId], rootId);
+
+                focusOnNode(rootId, nodeDisplayId);
+
+                return nodeOpeningRetVal.OPENED_NODE;
+            }
+        } else {
+            const parentNodeId = graphData[rootId][nodeId]["parent"];
+            if (!parentNodeId) {
+                return nodeOpeningRetVal.PARENT_NOT_FOUND;
+            }
+            const response = handleOpeningOfNodeFromMainView(rootId, parentNodeId);
+            if (response == nodeOpeningRetVal.OPENED_NODE) {
+                return handleOpeningOfNodeFromMainView(rootId, nodeId)
+            }
+        }
+    }
+
+    // function name is a work in progress
+    // figure out how to pass the root id - or go through every graph and try to find the one that contains the node with that id and do stuff
+    function openTreeNodeOnClickFromMainView(nodeId) {
+        for (let rootId in graphData) {
+            if (nodeId == rootId) {
+                continue;
+            }
+
+            if (nodeId in graphData[rootId]) {
+                handleOpeningOfNodeFromMainView(rootId, nodeId);
+                break
+            }
+        }
+    }
+
+    let i = 0;
+    for (let root in data) {
+        idOfCanvasForGraph[root] = i;
+        setDisplay(data[root], i, root, true);
+        ++i;
+    }
+</script>

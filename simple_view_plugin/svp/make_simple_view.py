@@ -158,6 +158,7 @@ class SimpleVisualizator(VisualizeService):
 
         function nodeClick(el) {
           alert("ID: " + el.id);
+          openTreeNodeOnClickFromMainView(el.id);
         }
 
         function tick(e) {
