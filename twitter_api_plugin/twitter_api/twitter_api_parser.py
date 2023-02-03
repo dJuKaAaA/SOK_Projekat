@@ -4,6 +4,9 @@ from core.models import Graph, Node, Edge
 from core.services.load import LoadService
 from datetime import datetime
 
+def convert_str_do_datetime(str_date, date_format):
+    return datetime.strptime(str_date, date_format)
+
 class TwitterApiParser(LoadService):
 
     api = None
@@ -116,6 +119,8 @@ class TwitterApiParser(LoadService):
 
         if node.id in graph.data.keys():
             return graph.data[node.id] 
+
+        user_data["created_at"] = convert_str_do_datetime(str(user_data["created_at"]).split("+")[0], "%Y-%m-%d %H:%M:%S")
 
         graph.add_node(node)
         return node
