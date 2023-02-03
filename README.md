@@ -16,6 +16,10 @@ Django biblioteka se može instalirati sledećom komandom:
 ```
 pip install django
 ```
+Za korišćenje Twitter Followers API plugin-a potrebno je instalirati Tweepy biblioteku. Ona se može instalirati sledećom komandom:
+```
+pip install tweepy
+```
 
 Nakon instalacije Django biblioteke, potrebno je instalirati core deo aplikacije. To se može učiniti pozicioniranjem u Core folder i pokretanjem sledeće komande:
 ```
@@ -61,4 +65,3 @@ Pokretanje Django servera se vrši pokretanjem run.sh skripte. Skripta se pokre�
 ```
 run.sh
 ```
-
