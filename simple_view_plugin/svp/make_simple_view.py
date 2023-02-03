@@ -1,6 +1,6 @@
 
 from core.models import Graph, Node, Edge
-from core.services.load import VisualizeService
+from core.services.visualize import VisualizeService
 
 class SimpleVisualizator(VisualizeService):
 
@@ -46,8 +46,8 @@ class SimpleVisualizator(VisualizeService):
       for node_id in graph.data:
           for edge in graph.data[node_id].edges:
               string = string + '{' + "\"source\":" + \
-                  "\"" + edge.first_node + "\"" + ',' + "\"target\":" + \
-                  "\"" + edge.second_node + "\"" + '},'
+                  "\"" + str(edge.first_node) + "\"" + ',' + "\"target\":" + \
+                  "\"" + str(edge.second_node) + "\"" + '},'
       string = string + ']'
       print(string)
       return string

@@ -1,5 +1,5 @@
 from core.models import Graph, Node, Edge
-from core.services.load import VisualizeService
+from core.services.visualize import VisualizeService
 
 class ComplexVisualizator(VisualizeService):
 
