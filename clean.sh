@@ -39,3 +39,8 @@ rm -rf build
 rm -rf *.egg-info
 rm -rf dist
 cd ..
+cd twitter_api_plugin
+rm -rf build
+rm -rf *.egg-info
+rm -rf dist
+cd ..

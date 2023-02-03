@@ -14,9 +14,9 @@ class FileSystemParser(LoadService):
   def identifier(self):
     return "file_system_parser"
 
-  def load(self, path):
+  def load(self, *args):
     graph = Graph({})
-    self.makeNode(path, graph)
+    self.makeNode(args[0], graph)
     return graph
 
   def makeNode(self, path, graph):

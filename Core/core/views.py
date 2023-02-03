@@ -9,11 +9,16 @@ def get_fs(request):
     path = request.GET.get("path")
     fsp = apps.get_app_config('core').loaded_plugins["fsp_plugin"]
     graph = fsp.load(path)
-    # og_graph = fsp.load(path)
     apps.get_app_config('core').og_graph = copy.deepcopy(graph)
     apps.get_app_config('core').graph = graph
     return redirect("/")
 
+def get_twitter(request):
+    twp = apps.get_app_config('core').loaded_plugins["twp_plugin"]
+    graph = twp.load()
+    apps.get_app_config('core').og_graph = copy.deepcopy(graph)
+    apps.get_app_config('core').graph = graph
+    return redirect("/")
 
 def search(request):
     term = request.GET.get("term")
