@@ -1,7 +1,6 @@
 from abc import abstractmethod, ABC
 
-
-class LoadService(ABC):
+class VisualizeService(ABC):
 
     @abstractmethod
     def name(self):
@@ -12,6 +11,5 @@ class LoadService(ABC):
         pass
 
     @abstractmethod
-    def load(self, *args):
+    def get_html(self, graph):
         pass
-

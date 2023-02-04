@@ -1,0 +1,22 @@
+.node {
+  cursor: pointer;
+  fill: #318ce7;
+  border-radius: 50px;
+  rx: 4; /* round corners */
+}
+
+.name {
+  text-anchor: "middle";
+  font-family: "sans-serif";
+  fill: rgb(0, 0, 0);
+}
+.link {
+  fill: none;
+  stroke: blue;
+  stroke-width: 1.5px;
+}
+
+.separator {
+  stroke: rgb(0, 0, 0);
+  margin-top: 10px;
+}

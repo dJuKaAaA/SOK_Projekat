@@ -4,69 +4,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     {% load static %}
     <script type="text/javascript" src="{% static 'd3.v3.js' %}"></script>
-    <script type="text/javascript" src="{% static 'base.js' %}"></script>
     <link rel="stylesheet" href="{% static 'style.css' %}" />
     <link rel="stylesheet" href="{% static 'base.css' %}" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
-
     <title>{{title}}</title>
+
+    <style>
+      #bird-view {
+        position: absolute;
+        width: 20vw;
+        height: 25vh;
+        bottom: 18vh;
+        right: 8vw;
+        background-color: white;
+        border: #111;
+        border-style: solid;
+      }
+    </style>
 
     {% block head_content %} {% endblock %}
   </head>
   <body>
-    <div id="mySidenav" class="side-nav">
+    <!-- <div id="mySidenav" class="side-nav">
       <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"
         >&times;</a
       >
       <a href="#">Country's (JSON)</a>
       <a href="#">File system</a>
-    </div>
+    </div> -->
     <div class="nav-header">
-      <span style="font-size: 30px; cursor: pointer" onclick="openNav()"
-        >&#9776;</span
-      >
+      <!-- <span style="font-size: 30px; cursor: pointer" onclick="openNav()">&#9776;</span> -->
       <div class="div-input-filter">
-        <form>
+        <form method="get" action="http://localhost:8000/get_twitter">
+          {% if twp_plugin %}
+          <button type="submit">Load twitter</button>
+          {% endif %}
+        </form>
+        <form method="get" action="http://localhost:8000/get_fs">
+          <!-- {% csrf_token %} -->
+          {% if fsp_plugin %}
           <input
             type="text"
             id="file-path-input"
             placeholder="FILE PATH"
-            name="input"
+            name="path"
           />
           <button type="submit">Send</button>
+          {% endif %}
         </form>
-        <form>
+        <form method="get" action="http://localhost:8000/search">
           <input
             type="text"
             id="search-input"
             placeholder="SEARCH"
-            name="input"
+            name="term"
           />
-          <button type="submit">Send</button>
+          <button type="submit">Search</button>
         </form>
-        <form>
+        <form method="get" action="http://localhost:8000/filter">
           <input
             type="text"
             id="filter-input"
             placeholder="FILTER"
-            name="input"
+            name="query"
           />
-          <button type="submit">Send</button>
+          <button type="submit">Filter</button>
         </form>
       </div>
     </div>
 
     <div class="content">
+      <div id="bird-view"></div>
       <div id="tree-view"></div>
-      <div id="graph-view"></div>
+      <div id="graph-view">{% block content %} {% endblock %}</div>
     </div>
     <div class="footer-nav">
       <div class="footer-buttons">
-        <button class="blue-button">Simple view</button>
-        <button class="blue-button">Complex view</button>
+        {% if svp_plugin %}
+        <form method="get" action="http://localhost:8000/simple">
+          <button type="submit" class="blue-button">Simple view</button>
+        </form>
+        {% endif %} {% if cvp_plugin %}
+        <form method="get" action="http://localhost:8000/complex">
+          <button type="submit" class="blue-button">Complex view</button>
+        </form>
+        {% endif %}
       </div>
     </div>
   </body>

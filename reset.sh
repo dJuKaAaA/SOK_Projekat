@@ -38,9 +38,29 @@ cd simple_view_plugin
 rm -rf build
 rm -rf *.egg-info
 rm -rf dist
-cd ..
+cd .. 
 cd twitter_api_plugin
 rm -rf build
 rm -rf *.egg-info
 rm -rf dist
 cd ..
+pip uninstall coree -y
+pip uninstall fsp -y
+pip uninstall twp -y
+pip uninstall svp -y
+pip uninstall cvp -y
+.
+cd Core
+python setup.py install
+cd ..
+cd file_system_parser
+python setup.py install
+cd .. 
+cd twitter_api_plugin
+python setup.py install
+cd ..
+cd simple_view_plugin
+python setup.py install
+cd ..
+cd complex_view_plugin
+python setup.py install

@@ -91,15 +91,18 @@ form > button {
 #graph-view {
   border: #111;
   border-style: solid;
-  background-color: rgb(241, 32, 32);
-  width: 80%;
+  background-color: white;
+  width: 70%;
   display: flex;
   flex-direction: column;
 }
 
 #tree-view {
-  width: 20%;
-  background-color: blue;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  width: 25%;
+  max-height: 80vh;
+  background-color: white;
   border: #111;
   border-style: solid;
 }
